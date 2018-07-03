@@ -1,101 +1,73 @@
-/* global firebase moment */
-// Steps to complete:
+$(document).ready(function () {
 
-// 1. Initialize Firebase
-// 2. Create button for adding new employees - then update the html + update the database
-// 3. Create a way to retrieve employees from the employee database.
-// 4. Create a way to calculate the months worked. Using difference between start and current time.
-//    Then use moment.js formatting to set difference in months.
-// 5. Calculate Total billed
 
-// 1. Initialize Firebase
-var config = {
-    apiKey: "AIzaSyA_QypGPkcjPtylRDscf7-HQl8ribnFeIs",
-    authDomain: "time-sheet-55009.firebaseapp.com",
-    databaseURL: "https://time-sheet-55009.firebaseio.com",
-    storageBucket: "time-sheet-55009.appspot.com"
-  };
-  
-  firebase.initializeApp(config);
-  
-  var database = firebase.database();
-  
-  // 2. Button for adding Employees
-  $("#add-employee-btn").on("click", function(event) {
-    event.preventDefault();
-  
-    // Grabs user input
-    var empName = $("#employee-name-input").val().trim();
-    var empRole = $("#role-input").val().trim();
-    var empStart = moment($("#start-input").val().trim(), "DD/MM/YY").format("X");
-    var empRate = $("#rate-input").val().trim();
-  
-    // Creates local "temporary" object for holding employee data
-    var newEmp = {
-      name: empName,
-      role: empRole,
-      start: empStart,
-      rate: empRate
+    // Initialize Firebase
+    var config = {
+        apiKey: "AIzaSyBejq_6bnzho-sxoafltRrY35LWDorvUDI",
+        authDomain: "time-train-bc236.firebaseapp.com",
+        databaseURL: "https://time-train-bc236.firebaseio.com",
+        projectId: "time-train-bc236",
+        storageBucket: "time-train-bc236.appspot.com",
+        messagingSenderId: "969612648383"
     };
-  
-    // Uploads employee data to the database
-    database.ref().push(newEmp);
-  
-    // Logs everything to console
-    console.log(newEmp.name);
-    console.log(newEmp.role);
-    console.log(newEmp.start);
-    console.log(newEmp.rate);
-  
-    // Alert
-    alert("Employee successfully added");
-  
-    // Clears all of the text-boxes
-    $("#employee-name-input").val("");
-    $("#role-input").val("");
-    $("#start-input").val("");
-    $("#rate-input").val("");
-  });
-  
-  // 3. Create Firebase event for adding employee to the database and a row in the html when a user adds an entry
-  database.ref().on("child_added", function(childSnapshot, prevChildKey) {
-  
-    console.log(childSnapshot.val());
-  
-    // Store everything into a variable.
-    var empName = childSnapshot.val().name;
-    var empRole = childSnapshot.val().role;
-    var empStart = childSnapshot.val().start;
-    var empRate = childSnapshot.val().rate;
-  
-    // Employee Info
-    console.log(empName);
-    console.log(empRole);
-    console.log(empStart);
-    console.log(empRate);
-  
-    // Prettify the employee start
-    var empStartPretty = moment.unix(empStart).format("MM/DD/YY");
-  
-    // Calculate the months worked using hardcore math
-    // To calculate the months worked
-    var empMonths = moment().diff(moment(empStart, "X"), "months");
-    console.log(empMonths);
-  
-    // Calculate the total billed rate
-    var empBilled = empMonths * empRate;
-    console.log(empBilled);
-  
-    // Add each train's data into the table
-    $("#employee-table > tbody").append("<tr><td>" + empName + "</td><td>" + empRole + "</td><td>" +
-    empStartPretty + "</td><td>" + empMonths + "</td><td>" + empRate + "</td><td>" + empBilled + "</td></tr>");
-  });
-  
-  // Example Time Math
-  // -----------------------------------------------------------------------------
-  // Assume Employee start date of January 1, 2015
-  // Assume current date is March 1, 2016
-  
-  // We know that this is 15 months.
-  // Now we will create code in moment.js to confirm that any attempt we use meets this test case
-  
+    firebase.initializeApp(config);
+
+    var database = firebase.database();
+
+
+    $("#add-train-btn").on("click", function (event) {
+        event.preventDefault();
+
+
+        var trainName = $("#train-name-input").val().trim();
+        var trainDestination = $("#destination-input").val().trim();
+        var trainTime = moment($("#trainTimeInput").val(), "HH:mm").subtract(10, "years").format("X");
+        var trainFrequency = $("#frequency-input").val().trim();
+
+
+        var newTrain = {
+            name: trainName,
+            destination: trainDestination,
+            time: trainTime,
+            frequency: trainFrequency
+        };
+
+
+        database.ref().push(newTrain);
+
+
+        alert("Train successfully added");
+
+        $("#train-name-input").val("");
+        $("#destination-input").val("");
+        $("#train-time-input").val("");
+        $("#frequency-input").val("");
+    });
+
+
+    database.ref().on("child_added", function (childSnapshot, prevChildKey) {
+
+        var trainName = childSnapshot.val().name;
+        var trainDestination = childSnapshot.val().destination;
+        var trainTime = childSnapshot.val().time;
+        var trainFrequency = childSnapshot.val().frequency;
+
+
+
+        var trainTimeInput = childSnapshot.val().name;
+        var destinationInput = childSnapshot.val().destination;
+        var firebaseTrainTimeInput = childSnapshot.val().time;
+        var frequencyInput = childSnapshot.val().frequency;
+
+        var diffTime = moment().diff(moment.unix(firebaseTrainTimeInput), "minutes");
+        var timeRemainder = moment().diff(moment.unix(firebaseTrainTimeInput), "minutes") % frequencyInput;
+        var minutes = frequencyInput - timeRemainder;
+
+        var nextTrainArrival = moment().add(minutes, "m").format("hh:mm A");
+
+
+        $("#train-table > tbody").append("<tr><td>" + trainName + "</td><td>" + trainDestination + "</td><td>" + trainFrequency + "</td><td>" + nextTrainArrival + "</td><td>" + minutes + "</td><td>");
+    });
+
+
+}); 
